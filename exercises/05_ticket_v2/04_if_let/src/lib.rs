@@ -11,7 +11,7 @@ impl Shape {
         let Shape::Circle { radius } = &self else {
             panic!("Oh noes!");
         };
-        radius
+        *radius
     }
 }
 
