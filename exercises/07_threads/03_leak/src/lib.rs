@@ -6,11 +6,10 @@
 use std::thread::{self, JoinHandle};
 
 pub fn sum(v: Vec<i32>) -> i32 {
-    let a: &'static mut [i32] = v[..v.len() / 2].to_vec().leak();
-    let b: &'static mut [i32] = v[v.len() / 2..].to_vec().leak();
+    let static_ref: &'static [i32] = v.leak();
 
-    let handle_a: JoinHandle<i32> = thread::spawn(|| a.iter().sum());
-    let handle_b: JoinHandle<i32> = thread::spawn(|| b.iter().sum());
+    let handle_a: JoinHandle<i32> = thread::spawn(|| static_ref[..static_ref.len() / 2].iter().sum());
+    let handle_b: JoinHandle<i32> = thread::spawn(|| static_ref[static_ref.len() / 2..].iter().sum());
 
     handle_a.join().unwrap() + handle_b.join().unwrap()
 }
