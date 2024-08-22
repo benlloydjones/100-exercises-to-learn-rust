@@ -1,10 +1,16 @@
 // TODO: Given a static slice of integers, split the slice into two halves and
 //  sum each half in a separate thread.
 //  Do not allocate any additional memory!
-use std::thread;
+use std::thread::{self, JoinHandle};
 
 pub fn sum(slice: &'static [i32]) -> i32 {
-    todo!()
+    let s_a = &slice[0..slice.len() / 2];
+    let s_b = &slice[slice.len() / 2..];
+    
+    let handle_a: JoinHandle<i32> = thread::spawn(|| s_a.iter().sum());
+    let handle_b: JoinHandle<i32> = thread::spawn(|| s_b.iter().sum());
+
+    handle_a.join().unwrap() + handle_b.join().unwrap()
 }
 
 #[cfg(test)]
