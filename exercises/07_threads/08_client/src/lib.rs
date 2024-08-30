@@ -7,23 +7,31 @@ pub mod store;
 
 #[derive(Clone)]
 // TODO: flesh out the client implementation.
-pub struct TicketStoreClient {}
+pub struct TicketStoreClient {
+  sender: Sender<Command>  
+}
 
 impl TicketStoreClient {
     // Feel free to panic on all errors, for simplicity.
     pub fn insert(&self, draft: TicketDraft) -> TicketId {
-        todo!()
+        let (response_channel, receive_channel) = std::sync::mpsc::channel();
+        let command = Command::Insert { draft, response_channel };
+        let _ = self.sender.send(command);
+        receive_channel.recv().expect("No more messages to receive from insert")
     }
 
     pub fn get(&self, id: TicketId) -> Option<Ticket> {
-        todo!()
+        let (response_channel, receive_channel) = std::sync::mpsc::channel();
+        let command = Command::Get { id, response_channel };
+        let _ = self.sender.send(command);
+        receive_channel.recv().expect("No more messages to recieve from get")
     }
 }
 
 pub fn launch() -> TicketStoreClient {
     let (sender, receiver) = std::sync::mpsc::channel();
     std::thread::spawn(move || server(receiver));
-    todo!()
+    TicketStoreClient{ sender }
 }
 
 // No longer public! This becomes an internal detail of the library now.
@@ -38,7 +46,7 @@ enum Command {
     },
 }
 
-pub fn server(receiver: Receiver<Command>) {
+fn server(receiver: Receiver<Command>) {
     let mut store = TicketStore::new();
     loop {
         match receiver.recv() {
